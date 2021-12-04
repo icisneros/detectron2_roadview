@@ -45,8 +45,8 @@ class Detector:
 
     def onImage(self, imagePath):
         image = cv2.imread(imagePath)
-        # cv2.imshow("Before network", image)
-        # cv2.waitKey(0)
+        cv2.imshow("Before network", image)
+        cv2.waitKey(0)
 
         predictions = self.predictor(image)
 

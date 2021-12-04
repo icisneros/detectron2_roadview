@@ -27,13 +27,13 @@ class Detector:
         print("Done initializing")
 
 
-    #     self.classes_dict = {}
+        self.classes_dict = {}
         
-    #     self.construct_class_dict()
+        self.construct_class_dict()
         
-    #     self.interested_classes = ["person", "car", "truck", "stop sign"]
+        self.interested_classes = ["person", "car", "truck", "stop sign"]
 
-    #     self.interested_classes_num = self.construct_interested_cls_num()
+        self.interested_classes_num = self.construct_interested_cls_num()
 
 
     # def construct_class_dict(self):
@@ -80,7 +80,9 @@ class Detector:
     #         print(MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]).thing_classes[num])
         
     #     return pred_classes, pred_boxes
-        
+
+
+
     def single_inference(self, image_path):
         """Takes in a path to an image and returns tensors for the classes (indices)
         in the image, and a tensor for the bounding boxes.
