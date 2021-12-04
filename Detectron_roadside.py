@@ -134,10 +134,8 @@ class Detector:
         batch_size = stacked_tensors.size()[0]
         inputs = []
         for i in range(0, batch_size):
-            img = stacked_tensors[i, :]
-            img = img.squeeze()
-            img = np.transpose(img,(2,0,1))
-            img_tensor = torch.from_numpy(img)
+            img_tensor = stacked_tensors[i, :]
+            img_tensor = img_tensor.squeeze()
             inputs.append({"image":img_tensor})
 
         outputs = self.model(inputs)
