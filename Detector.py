@@ -5,7 +5,7 @@ from detectron2.utils.visualizer import ColorMode, Visualizer
 from detectron2 import model_zoo
 
 import cv2
-import numpy
+import numpy as np
 
 # trying to change 
 class Detector:
@@ -16,15 +16,31 @@ class Detector:
         self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml"))
         self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_R_101_FPN_3x.yaml")
 
-
-        # self.cfg.merge_from_file(model_zoo.get_config_file("Cityscapes/mask_rcnn_R_50_FPN.yaml"))
-        # self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("Cityscapes/mask_rcnn_R_50_FPN.yaml")
-        # https://github.com/facebookresearch/detectron2/blob/main/configs/Cityscapes/mask_rcnn_R_50_FPN.yaml
-
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
         self.cfg.MODEL.DEVICE = "cuda"
 
         self.predictor = DefaultPredictor(self.cfg)
+
+        self.classes_dict = {}
+        
+        self.construct_class_dict()
+        
+        self.interested_classes = ["person", "car", "truck", "stop sign"]
+
+        self.interested_classes_num = self.construct_interested_cls_num()
+
+
+    def construct_class_dict(self):
+        for i, name in enumerate(MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]).thing_classes):
+            self.classes_dict[name] = i
+        
+    def construct_interested_cls_num(self):
+        intr_cls_num = []
+        for name in self.interested_classes:
+            num = self.classes_dict[name]
+            intr_cls_num.append(num)
+        return intr_cls_num
+
 
     def onImage(self, imagePath):
         image = cv2.imread(imagePath)
@@ -48,12 +64,10 @@ class Detector:
 
         fps = video.get(cv2.CAP_PROP_FPS)
 
-
         if (video.isOpened()==False):
             print("Error opening the file...")
             return
         
-
         success, frame = video.read()
         frame_id = 0
         print("processing frames...")
@@ -72,8 +86,38 @@ class Detector:
             success, frame = video.read()
             frame_id = (frame_id+1) % fps
 
-
         video.release()
         out.release()        
         cv2.destroyAllWindows()
         print("Done!")
+    
+
+    def filtered_outputs(self, imagePath):
+        image = cv2.imread(imagePath)
+        outputs = self.predictor(image)
+        pred_classes = outputs["instances"].pred_classes
+        pred_boxes = outputs["instances"].pred_boxes
+        # print(pred_classes)
+        # print(pred_boxes)
+
+        pred_classes_list = pred_classes.tolist()
+
+        indx_to_remove = []
+        for i, num in enumerate(pred_classes_list):
+            if num not in self.interested_classes_num:
+                indx_to_remove.append(i)
+        # print(indx_to_remove)
+
+        pred_classes = np.delete(pred_classes.cpu().numpy(), indx_to_remove)
+        pred_boxes = np.delete(pred_boxes.tensor.cpu().numpy(), indx_to_remove, axis=0)
+        # print(pred_classes)
+        # print(pred_boxes)
+
+        for data in pred_classes:
+            num = data.item()
+            print(MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]).thing_classes[num])
+        
+        return pred_classes, pred_boxes
+        
+
+
