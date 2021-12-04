@@ -6,6 +6,7 @@ from detectron2 import model_zoo
 
 import cv2
 import numpy as np
+import torch
 
 # trying to change 
 class Detector:
@@ -94,7 +95,12 @@ class Detector:
 
     def filtered_outputs(self, imagePath):
         image = cv2.imread(imagePath)
-        outputs = self.predictor(image)
+        # import pdb
+        # pdb.set_trace()
+        t_image = image[np.newaxis, :]
+        print(t_image.shape)
+        outputs = self.predictor(t_image)
+        # outputs = self.predictor(image)
         pred_classes = outputs["instances"].pred_classes
         pred_boxes = outputs["instances"].pred_boxes
         # print(pred_classes)
