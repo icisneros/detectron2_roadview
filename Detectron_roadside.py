@@ -130,4 +130,27 @@ class Detector:
         return list_of_pred_classes, list_of_pred_boxes
 
 
-# test
+    def batch_inference_fromtensors(self, stacked_tensors):
+        batch_size = stacked_tensors.size()[0]
+        inputs = []
+        for i in range(0, batch_size):
+            img = stacked_tensors[i, :]
+            img = img.squeeze()
+            img = np.transpose(img,(2,0,1))
+            img_tensor = torch.from_numpy(img)
+            inputs.append({"image":img_tensor})
+
+        outputs = self.model(inputs)
+
+        list_of_pred_classes = []
+        list_of_pred_boxes = []
+        for i in range(0, len(outputs)):
+            pred_classes = outputs[i]["instances"].pred_classes
+            pred_boxes = outputs[i]["instances"].pred_boxes.tensor
+
+            list_of_pred_classes.append(pred_classes)
+            list_of_pred_boxes.append(pred_boxes)
+
+
+        return list_of_pred_classes, list_of_pred_boxes
+
